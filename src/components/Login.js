@@ -1,7 +1,9 @@
-import '../App.css'
+import '../Styles.css'
 import React, {useState} from 'react';
 import ListCities from './ListCities';
+import UserCities from './UserCities';
 import { BrowserRouter } from 'react-router-dom/cjs/react-router-dom.min';
+
 
 function Login() {
     const[user, setUser] = useState({username:'', password:''});
@@ -18,43 +20,65 @@ function Login() {
         })
         .then(res => { 
             const jwtToken = res.headers.get('Authorization');
-            console.log(jwtToken);
             if (jwtToken !== null) {
                 sessionStorage.setItem("jwt", jwtToken);
+                fetchUserData(jwtToken)
                 setAuth(true);
             }
         })
         .catch(err => console.log(err));
     }
 
+    const fetchUserData = async (jwtToken) => {
+        try {
+            const response = await fetch('http://localhost:8080/user/' + user.username, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': jwtToken
+                },
+            });
+
+            if(response.ok) {
+                const user = await response.json();
+                setUser(user);
+            }else {
+                console.error('Error fetching user', response.statusText);
+            }
+        }catch(error) {
+            console.error('Error fetching user', error);
+        }
+    }
     if(isAuthenticated) {
         return (
             <div className="App">
                 <BrowserRouter>
-                    <ListCities/>
+                    <UserCities user={user}/>
                 </BrowserRouter>
             </div>
         );
     }else {
         return (
-            <div className="App">
-                <table>
-                <tbody>
-                <tr><td>
-                <label htmlFor="username">UserName</label>
-                </td><td>
-                <input type="text" name="username" value={user.username} onChange={onChange} />
-                </td></tr>
-                <tr><td>
-                <label htmlFor="password">Password</label>
-                </td><td>
-                <input type="text" name="password" value={user.password} onChange={onChange} />
-                </td></tr>
-                </tbody>
-                </table>
-            
-                <br/>
-                <button id="submit" onClick={login}>Login</button>
+            <div className="login-container">
+                <div className="login-form" >
+                    <table>
+                    <tbody>
+                    <tr><td>
+                    <label htmlFor="username">UserName</label>
+                    </td><td>
+                    <input type="text" name="username" value={user.username} onChange={onChange} />
+                    </td></tr>
+                    <tr><td>
+                    <label htmlFor="password">Password</label>
+                    </td><td>
+                    <input type="text" name="password" value={user.password} onChange={onChange} />
+                    </td></tr>
+                    </tbody>
+                    </table>
+                
+                    <br/>
+                    <button id="submit" onClick={login}>Login</button>
+                </div>
             </div>
         );
     }
