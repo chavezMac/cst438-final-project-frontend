@@ -14,32 +14,48 @@ function ListCities(props) {
   }, [] )
  
   const fetchCities = async () => {
-    try {
-      const response = await fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=minutely,hourly,daily,alerts&units=imperial&appid=${apikey}`);
-      const data = await response.json();
-      console.log(data);
+    fetch(SERVER_URL + '/city', {
+      headers: {'Authorization': sessionStorage.getItem('jwt')}
+    })
+    .then(response => response.json())
+    //console log data
+    .then((responseData) => {
+      console.log(responseData);
+      //Use the information in responseData to update the return statement
+      setCities(responseData);
+      for(let i = 0; i < cities.length; i++) {
+        console.log(cities[i].timezone);
+      }
 
-      setCities([{ name: 'London', data }]);
-    } catch (error) {
-      setMessage('Error retrieving cities');
-    }
+    })
+    .catch(err => console.error(err));
   }
   
-  
-    const headers = ['City', 'Temperature', '', ' ', ' ', ' '];
-
-    return (
+  return (
+    <div className="App">
+      <h3>Cities</h3>
+      <table>
+        <tbody>
+          <tr><th>Name</th><th>Temperature</th><th>Max Temp</th><th>Min Temp</th><th>Weather</th></tr>
+          {
+            cities.map((city, index) => 
+              <tr key={index}>
+                <td>{city.timezone}</td>
+                <td>{city.temp}</td>
+                <td>{city.max}</td>
+                <td>{city.min}</td>
+                <td>{city.icon}</td>
+                <td><Link to={`/weather/${city.name}/${city.country}`}>Weather</Link></td>
+              </tr>
+            )
+          }
+        </tbody>
+      </table>
+      <div>{message}</div>
+    </div>
     
-      <div>
-        <h1>Weather Stats for {cities.length > 0 ? cities[0].name : 'City'}</h1>
-        {cities.length > 0 && (
-          <div>
-            <h2>{cities[0].name}</h2>
-            <p>Temperature: {cities[0].data.current.temp} °F</p>
-          </div>
-        )}
-      </div>
-    );
+  );
+
   };
 
 export default ListCities;
