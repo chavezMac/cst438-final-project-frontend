@@ -4,61 +4,108 @@ import {Link} from 'react-router-dom';
 import {apikey} from '../constants';
 import CitySelectionModal from './CitySelectionModal';
 
-function ListCities(props) {
+function ListCities({username}) {
 
   const [cities, setCities] = useState([]);
   const [message, setMessage] = useState('');
+  const [userId, setUserId] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-   // called once after intial render
-   fetchCities();
-  }, [] )
+    // called once after initial render
+    fetchUserId(username);
+  }, [username]);
+
+  useEffect(() => {
+    // called whenever userId changes
+    if (userId !== '') {
+      fetchCities();
+    }
+  }, [userId]);
+
+  const fetchUserId = async (username) => {
+    fetch(SERVER_URL + '/users/' + username, {
+      headers: {'Authorization': sessionStorage.getItem('jwt')}
+    })
+    .then(response => response.text())
+    .then((responseData) => {
+      console.log(responseData);
+      setUserId(parseInt(responseData, 10));
+      return responseData;
+    })
+    .catch(err => console.error(err));
+  }
  
   const fetchCities = async () => {
-    try {
-      // const response = await fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=minutely,hourly,daily,alerts&units=imperial&appid=${apikey}`);
-      const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=London&exclude=minutely,hourly,daily,alerts&units=imperial&appid=${apikey}`)
-      const data = await response.json();
-      console.log(data);
+    console.log('fetching cities')
+    fetch(`${SERVER_URL}/city/${userId}`, {
+      headers: {'Authorization': sessionStorage.getItem('jwt')}
+    })
+    .then(response => response.json())
+    .then((responseData) => {
+      console.log(responseData);
+      setCities(responseData);
+      for(let i = 0; i < cities.length; i++) {
+        console.log(cities[i].timezone);
+      }
 
-      setCities([{ name: 'London', data }]);
-    } catch (error) {
-      setMessage('Error retrieving cities');
-    }
-  };
+    })
+    .catch(err => console.error(err));
+  }
 
   const handleAddCity = (newCity) => {
     // Implement logic to add the city
     console.log(`Adding city: ${newCity}`);
+    fetch(`${SERVER_URL}/city/${userId}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': sessionStorage.getItem('jwt')},
+      body: JSON.stringify({name: newCity})
+    })
+    .then(response => {
+      if (response.ok) {
+        setMessage(`Added city: ${newCity}`);
+        fetchCities();
+      }
+    })
     // Make API call or update state as needed
     setIsModalOpen(false);
   };
   
-  const headers = ['City', 'Temperature', '', ' ', ' ', ' '];
-
   return (
-  
-    <div>
-      <h1>Weather Stats </h1>
+    <div className="App">
+      <h3>Cities</h3>
       <button onClick={() => setIsModalOpen(true)}>Add City</button>
-      {cities.length > 0 && (
-        <div>
-          <h2>{cities[0].name}</h2>
-          <p>Temperature: {cities[0].data.main.temp} °F</p>
-        </div>
-      )}
-      <br/>
-      <br/>
+
+      <table>
+        <tbody>
+          <tr><th>Name</th><th>Temperature</th><th>Max Temp</th><th>Min Temp</th><th>Weather</th></tr>
+          {
+            cities.map((city, index) => 
+              <tr key={index}>
+                <td>{city.timezone}</td>
+                <td>{city.temp}</td>
+                <td>{city.max}</td>
+                <td>{city.min}</td>
+                <td>{city.icon}</td>
+                <td><Link to={`/weather/${city.name}/${city.country}`}>Weather</Link></td>
+              </tr>
+            )
+          }
+        </tbody>
+      </table>
 
       {isModalOpen && (
-      <CitySelectionModal
-        onClose={() => setIsModalOpen(false)}
-        onCitySelect={handleAddCity}
-      />
+        <CitySelectionModal
+          onClose={() => setIsModalOpen(false)}
+          onCitySelect={handleAddCity}
+        />
       )}
+      <div>{message}</div>
     </div>
+    
   );
-};
+
+  };
 
 export default ListCities;
