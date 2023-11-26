@@ -2,26 +2,48 @@ import React, {useState, useEffect} from 'react';
 import {SERVER_URL} from '../constants';
 import {Link} from 'react-router-dom';
 import {apikey} from '../constants';
+import CitySelectionModal from './CitySelectionModal';
 
-function ListCities(props) {
+function ListCities({username}) {
 
   const [cities, setCities] = useState([]);
   const [message, setMessage] = useState('');
+  const [userId, setUserId] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-   // called once after intial render
-   fetchCities();
-  }, [] )
+    // called once after initial render
+    fetchUserId(username);
+  }, [username]);
+
+  useEffect(() => {
+    // called whenever userId changes
+    if (userId !== '') {
+      fetchCities();
+    }
+  }, [userId]);
+
+  const fetchUserId = async (username) => {
+    fetch(SERVER_URL + '/users/' + username, {
+      headers: {'Authorization': sessionStorage.getItem('jwt')}
+    })
+    .then(response => response.text())
+    .then((responseData) => {
+      console.log(responseData);
+      setUserId(parseInt(responseData, 10));
+      return responseData;
+    })
+    .catch(err => console.error(err));
+  }
  
   const fetchCities = async () => {
-    fetch(SERVER_URL + '/city', {
+    console.log('fetching cities')
+    fetch(`${SERVER_URL}/city/${userId}`, {
       headers: {'Authorization': sessionStorage.getItem('jwt')}
     })
     .then(response => response.json())
-    //console log data
     .then((responseData) => {
       console.log(responseData);
-      //Use the information in responseData to update the return statement
       setCities(responseData);
       for(let i = 0; i < cities.length; i++) {
         console.log(cities[i].timezone);
@@ -30,10 +52,30 @@ function ListCities(props) {
     })
     .catch(err => console.error(err));
   }
+
+  const handleAddCity = (newCity) => {
+    // Implement logic to add the city
+    console.log(`Adding city: ${newCity}`);
+    fetch(`${SERVER_URL}/city/${userId}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': sessionStorage.getItem('jwt')},
+      body: JSON.stringify({name: newCity})
+    })
+    .then(response => {
+      if (response.ok) {
+        setMessage(`Added city: ${newCity}`);
+        fetchCities();
+      }
+    })
+    // Make API call or update state as needed
+    setIsModalOpen(false);
+  };
   
   return (
     <div className="App">
       <h3>Cities</h3>
+      <button onClick={() => setIsModalOpen(true)}>Add City</button>
+
       <table>
         <tbody>
           <tr><th>Name</th><th>Temperature</th><th>Max Temp</th><th>Min Temp</th><th>Weather</th></tr>
@@ -51,6 +93,13 @@ function ListCities(props) {
           }
         </tbody>
       </table>
+
+      {isModalOpen && (
+        <CitySelectionModal
+          onClose={() => setIsModalOpen(false)}
+          onCitySelect={handleAddCity}
+        />
+      )}
       <div>{message}</div>
     </div>
     
