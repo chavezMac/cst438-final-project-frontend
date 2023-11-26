@@ -1,31 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { SERVER_URL } from '../constants';
+import ListCities from './ListCities';
 
 const CitySelectionModal = ({ onClose, onCitySelect }) => {
-  const [selectedCity, setSelectedCity] = useState('');
-  const availableCities = ['Seaside', 'Marina', 'Monterey', 'San Jose'];
+  const [availableCities, setAvailableCities] = useState([]);
+  
+  useEffect(() => {
+    fetchCities();
+  }, []);
 
-  const handleCitySelect = () => {
-    if (selectedCity) {
-      onCitySelect(selectedCity);
-      onClose();
-    }
-  };
+  const fetchCities = async () => {
+    console.log('fetching new cities');
+    fetch(SERVER_URL + '/city', {
+      headers: { Authorization: sessionStorage.getItem('jwt')},
+    })
+  
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log(responseData);
+        setAvailableCities(responseData);
+      })
+      .catch((err) => console.error(err));
+  }
 
   return (
     <div className="modal">
       <h2>Select a City</h2>
-      <select onChange={(e) => setSelectedCity(e.target.value)} value={selectedCity}>
+      <select onChange={(e) => onCitySelect(e.target.value)}>
         <option value="">Select a city</option>
-        {availableCities.map((city) => (
-          <option key={city} value={city}>
-            {city}
+        {availableCities.map((city, index) => (
+          <option key={index} value={city.name}>
+            {city.timezone}
           </option>
         ))}
       </select>
-      <button onClick={handleCitySelect}>Add City</button>
       <button onClick={onClose}>Cancel</button>
     </div>
   );
 };
+
 
 export default CitySelectionModal;
