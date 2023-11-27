@@ -7,6 +7,8 @@ function UserManager() {
     const [users, setUsers] = useState([]);
     const [cities, setCities] = useState([]);
     const [message, setMessage] = useState('');
+    const [newCityName, setNewCityName] = useState('');
+
     const url = SERVER_URL + '/users';
     const cityurl = SERVER_URL + '/city';
     
@@ -89,6 +91,28 @@ function UserManager() {
         window.location.reload();
     }
 
+    function addNewCity() {
+        const cityName = prompt('Enter the name of the new city:');
+        if (cityName) {
+            fetch(`${SERVER_URL}/city`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionStorage.getItem('jwt'),
+            },
+            body: JSON.stringify({ name: cityName }), // Assuming your API expects 'name' for the city name
+            })
+            .then((response) => {
+                if (response.ok) {
+                setMessage(`Added city: ${cityName}`);
+                setNewCityName(''); // Clear the input after adding the city
+                }
+            })
+            .then(() => fetchCities()) // Fetch cities again to update the list
+            .catch((err) => console.error(err));
+        }
+    }
+
     return (
         <div style={{ display: 'flex' }}>
           <div>
@@ -138,6 +162,22 @@ function UserManager() {
                     ))}
                 </tbody>
             </table>
+            <div>
+                <button
+                    onClick={addNewCity}
+                    style={{
+                    backgroundColor: '#00000080',
+                    color: '#ffffff',
+                    padding: '10px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginTop: '20px',
+                    }}
+                >
+                    Add New City
+                </button>
+            </div>
             <div>
             <button
                 onClick={logout}
