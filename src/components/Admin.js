@@ -2,15 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SERVER_URL } from '../constants';
 import '../Dashboard.css';
 
-
 function UserManager() {
     const [users, setUsers] = useState([]);
     const [cities, setCities] = useState([]);
     const [message, setMessage] = useState('');
+    const [cityMessage, setCityMessage] = useState('');
     const [newCityName, setNewCityName] = useState('');
 
     const url = SERVER_URL + '/users';
     const cityurl = SERVER_URL + '/city';
+    const adminurl = SERVER_URL + '/admin';
     
     const fetchUsers = useCallback( async () => {
         try {
@@ -56,27 +57,30 @@ function UserManager() {
           } catch (error) {
             console.error('Error fetching cities', error);
           }
-    },[url]); 
+    },[cityurl]); 
 
     useEffect(() => {
         fetchCities();
     },[fetchCities]);
 
+    function addNewUser() {
+        const alias = prompt('Enter the alias of the new user:');
+        const password = prompt('Enter the password of the new user:');
+        const role = prompt('Enter the role of the new user:');
 
-    function handleAddUser(newUser,password,role) {
-        console.log(`Adding user: ${newUser}`);
-    
         fetch(`${SERVER_URL}/users`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: sessionStorage.getItem('jwt'),
-        },
-        body: JSON.stringify({alias: newUser, password: password, role: role}),
-        })
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionStorage.getItem('jwt'),
+            },
+            body: JSON.stringify({alias: alias, password: password, role: role}),
+            })
         .then((response) => {
             if (response.ok) {
-            setMessage(`Added user: ${newUser}`);
+                setMessage(`Added user: ${alias}`);
+            }else {
+                alert(`Error adding user: ${alias}`);
             }
         }).then((responseData) => {
             console.log(responseData);
@@ -86,39 +90,74 @@ function UserManager() {
         });
     }
 
+    function deleteUser() {
+        const alias = prompt('Enter the alias of the user to delete:');
+        
+        fetch(`${SERVER_URL}/users/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionStorage.getItem('jwt'),
+            },
+            body: JSON.stringify({alias: alias}),
+        }).then((response)=> {
+            if(response.ok) {
+                setMessage(`Deleted user: ${alias}`);
+            }else {
+                setMessage(`Error deleting user: ${alias}`);
+            }
+        }).then((responseData) => {
+            console.log(responseData);
+        }).catch((err) => console.error(err))
+        .finally(() => {
+            fetchUsers();
+        })
+    
+    }
+
+    function addNewCity() {
+        const cityName = prompt('Enter the name of the new city:');
+
+        if (cityName) {
+            fetch(`${adminurl}/addCity?name=${cityName}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionStorage.getItem('jwt'),
+            },
+            })
+            .then((response) => {
+                if (response.ok) {
+                    setNewCityName(cityName);
+                    setCityMessage(`Added city: ${newCityName}`);
+                    setNewCityName(''); // Clear the input after adding the city
+                }
+            })
+            .then((responseData) => {
+                console.log(responseData);
+            }) 
+            .catch((err) => console.error(err), setNewCityName(''))
+            .finally(() => {
+                fetchCities();
+            })
+        }
+    }
+
+    function deleteCity() {
+
+    }
+
     function logout() {
         sessionStorage.removeItem('jwt');
         window.location.reload();
     }
 
-    function addNewCity() {
-        const cityName = prompt('Enter the name of the new city:');
-        if (cityName) {
-            fetch(`${SERVER_URL}/city`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: sessionStorage.getItem('jwt'),
-            },
-            body: JSON.stringify({ name: cityName }), // Assuming your API expects 'name' for the city name
-            })
-            .then((response) => {
-                if (response.ok) {
-                setMessage(`Added city: ${cityName}`);
-                setNewCityName(''); // Clear the input after adding the city
-                }
-            })
-            .then(() => fetchCities()) // Fetch cities again to update the list
-            .catch((err) => console.error(err));
-        }
-    }
-
     return (
         <div style={{ display: 'flex' }}>
-          <div>
-            <h3>Users</h3>
+          <div className="Dashboard">
+            <h3 style={{color: 'white'}}>Users</h3>
             <div className="message">{message}</div>
-            <table>
+            <table style={{color: 'white'}}>
                 <thead>
                     <tr>
                         <th>Alias</th>
@@ -136,11 +175,15 @@ function UserManager() {
                     ))}
                 </tbody>
             </table>
+            <div>
+                <button className="button" onClick={addNewUser}>Add New User</button>
+                <button className="button" onClick={deleteUser}>Delete User</button>
+            </div>
           </div>
-          <div style={{ marginLeft: '20px' }}>
-            <h3>Cities</h3>
-            <div className="message">{message}</div>
-            <table>
+          <div className="Dashboard" style={{ marginLeft: '20px' }}>
+            <h3 style={{color: 'white'}}>Cities</h3>
+            <div className="message">{cityMessage}</div>
+            <table style={{color: 'white'}}>
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -163,34 +206,10 @@ function UserManager() {
                 </tbody>
             </table>
             <div>
-                <button
-                    onClick={addNewCity}
-                    style={{
-                    backgroundColor: '#00000080',
-                    color: '#ffffff',
-                    padding: '10px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    marginTop: '20px',
-                    }}
-                >
-                    Add New City
-                </button>
+                <button className="button" onClick={addNewCity}>Add New City</button>
             </div>
             <div>
-            <button
-                onClick={logout}
-                style={{
-                backgroundColor: "#00000080",
-                color: '#ffffff',
-                padding: '10px',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginTop: '20px',
-                }}
-            >Logout</button>
+            <button className= "button" onClick={logout}>Logout</button>
             </div>
           </div>         
         </div>
