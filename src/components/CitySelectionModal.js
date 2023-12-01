@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { SERVER_URL } from '../constants';
 
-const CitySelectionModal = ({ onClose, onCitySelect }) => {
+const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity}) => {
   const [availableCities, setAvailableCities] = useState([]);
-
+  const [selectedCity, setSelectedCity] = useState('');
+  
   useEffect(() => {
     fetchCities();
   }, []);
@@ -22,10 +23,26 @@ const CitySelectionModal = ({ onClose, onCitySelect }) => {
       .catch((err) => console.error(err));
   }
 
+  const handleCitySelect = (e) => {
+   const selectedCity = e.target.value;
+   setSelectedCity(selectedCity);
+
+   if(onCitySelect) {
+     onCitySelect(selectedCity);
+   }
+  }
+
+  const handleCityDelete = () => {
+    if(onDeleteCity && selectedCity) {
+      console.log(selectedCity);
+      onDeleteCity(selectedCity);
+    }
+  }
+  
   return (
     <div className="modal">
       <h2>Select a City</h2>
-      <select onChange={(e) => onCitySelect(e.target.value)}>
+        <select onChange={handleCitySelect}>
         <option value="">Select a city</option>
         {availableCities.map((city, index) => (
           <option key={index} value={city.name}>
@@ -34,6 +51,7 @@ const CitySelectionModal = ({ onClose, onCitySelect }) => {
         ))}
       </select>
       <button onClick={onClose}>Cancel</button>
+      <button onClick={handleCityDelete}>Delete City</button>
     </div>
   );
 };

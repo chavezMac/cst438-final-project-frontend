@@ -37,6 +37,16 @@ body {
   .card-content {
     padding: 15px;
   }
+
+  .button {
+    background-color: #00000080;
+    color: #ffffff;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
   
 .card {
     flex: 1 1 200px;

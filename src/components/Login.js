@@ -1,7 +1,7 @@
 import '../Styles.css'
 import React, {useState} from 'react';
-import ListCities from './ListCities';
 import UserCities from './UserCities';
+import UserManager from './Admin';
 import { BrowserRouter } from 'react-router-dom/cjs/react-router-dom.min';
 
 
@@ -49,7 +49,8 @@ function Login() {
             console.error('Error fetching user', error);
         }
     }
-    if(isAuthenticated) {
+
+    if(isAuthenticated && user.role === 'user') {
         return (
             <div className="App">
                 <BrowserRouter>
@@ -57,6 +58,15 @@ function Login() {
                 </BrowserRouter>
             </div>
         );
+    }else if(isAuthenticated && user.role === 'admin') {
+        return (
+            <div className="App">
+                <BrowserRouter>
+                    <UserManager user={user}/>
+                </BrowserRouter>
+            </div>
+        );
+    
     }else {
         return (
             <div className="login-container">
