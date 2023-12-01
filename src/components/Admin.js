@@ -152,6 +152,25 @@ function UserManager() {
         window.location.reload();
     }
 
+    const updateWeather = () => {
+        cities.forEach((city) => {
+            fetch(`${adminurl}/updateCities?name=${city.timezone}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionStorage.getItem('jwt'),
+              },
+            })
+              .then((response) => {
+                if (response.ok) {
+                  setCityMessage(`Refreshed weather for ${city.timezone}`);
+                }
+              })
+              .then(() => fetchCities())
+              .catch((err) => console.error(err));
+          });
+    };
+
     return (
         <div style={{ display: 'flex' }}>
           <div className="Dashboard">
@@ -207,6 +226,7 @@ function UserManager() {
             </table>
             <div>
                 <button className="button" onClick={addNewCity}>Add New City</button>
+                <button className="button" onClick={updateWeather}>Update Weather</button>
             </div>
             <div>
             <button className= "button" onClick={logout}>Logout</button>
