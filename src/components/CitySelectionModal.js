@@ -42,7 +42,7 @@ const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity}) => {
   return (
     <div className="modal">
       <h2>Select a City</h2>
-      <select onChange={handleCitySelect}>
+        <select onChange={handleCitySelect}>
         <option value="">Select a city</option>
         {availableCities.map((city, index) => (
           <option key={index} value={city.name}>
@@ -55,6 +55,5 @@ const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity}) => {
     </div>
   );
 };
-
 
 export default CitySelectionModal;

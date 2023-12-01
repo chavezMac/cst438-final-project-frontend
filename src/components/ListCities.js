@@ -9,7 +9,6 @@ function ListCities({username}) {
   const [cities, setCities] = useState([]);
   const [message, setMessage] = useState('');
   const [userId, setUserId] = useState('');
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
