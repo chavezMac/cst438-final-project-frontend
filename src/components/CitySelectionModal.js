@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SERVER_URL } from '../constants';
 
-const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity}) => {
+const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity, onChangeCity}) => {
   const [availableCities, setAvailableCities] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
   
@@ -18,6 +18,7 @@ const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity}) => {
       .then((response) => response.json())
       .then((responseData) => {
         console.log(responseData);
+        console.log(sessionStorage.getItem('jwt'))
         setAvailableCities(responseData);
       })
       .catch((err) => console.error(err));
@@ -33,6 +34,7 @@ const CitySelectionModal = ({ onClose, onCitySelect, onDeleteCity}) => {
   }
 
   const handleCityDelete = () => {
+
     if(onDeleteCity && selectedCity) {
       console.log(selectedCity);
       onDeleteCity(selectedCity);
