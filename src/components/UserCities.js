@@ -33,20 +33,28 @@ function CityManager(props) {
     }
   },[url]);
   
-  const fetchCities = async () => {
-    console.log('fetching new cities');
-    fetch(SERVER_URL + '/city', {
-      headers: { Authorization: sessionStorage.getItem('jwt')},
-    })
-  
-      .then((response) => response.json())
-      .then((responseData) => {
-        console.log(responseData);
-        console.log(sessionStorage.getItem('jwt'))
-        setAvailableCities(responseData);
-      })
-      .catch((err) => console.error(err));
-  }
+  const fetchCities = useCallback( async () => {
+    try {
+      const response = await fetch(SERVER_URL + '/city', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: sessionStorage.getItem('jwt'),
+        },
+      });
+
+      if (response.ok) {
+        const availCites = await response.json();
+        setAvailableCities(availCites);
+      }
+    }catch(error) {
+      console.error('Error fetching cities', error);
+    }
+  },[]);
+
+  useEffect(() => {
+    fetchCities();
+  },[fetchCities]);
 
   useEffect(() => {
     fetchUserCities();
@@ -129,56 +137,42 @@ function CityManager(props) {
   }
 
   function handleChangeCity() {
-
+    //Update available cities
     fetchCities();
+    console.log(availableCities);
+    const selectedCity = prompt('Enter the name of the city to change:');
+    //check if city is in users cities
+    let cityFound = false;
+    let cityToAdd = false;
+    let newCity = "";
 
-    const newCity = prompt("Enter name of city you want to add:");
-    if(newCity) {
-      let city_id = 0;
-      console.log(availableCities);
-      console.log(newCity);
-      let cityFound = false;
-
-      for(let i = 0; i < availableCities.length; i++) {
-        console.log("Printing avaiable cities");
-        console.log(availableCities[i]);
+    cities.forEach((city) => {
+      if(city.timezone === selectedCity) {
+        cityFound = true;
       }
-
-      if(availableCities.includes(newCity)) {
-        const oldCity =  prompt("Enter name of city to replace:");
-        if(cities.includes(oldCity)) {
-
-          for(let i = 0; i < cities.length; i++) {
-            if(cities[i].cityName === oldCity) {
-              city_id = cities[i].city_id;
-              console.log(city_id);
-            }
-          }
-          const data = new URLSearchParams();
-          data.append('name', newCity);
-          data.append('city_id', city_id);
-
-          fetch(`${SERVER_URL}/city/update/${props.user.user_id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              Authorization: sessionStorage.getItem('jwt'),
-            },
-            body: data,
-          }).then((response) => {
-            if(response.ok) {
-              setMessage(`City changed:${oldCity}`);
-            }
-          }).then((responseData) => {
-            console.log(responseData);
-          }).catch((err) => console.log(err))
-          .finally(() => {
-
-          })
+    });
+    console.log("City found: " + cityFound);
+    if(cityFound) {
+      //Enter city to add
+      newCity = prompt('Enter the name of the city to add:');
+      //check if city is in available cities
+      availableCities.forEach((city) => {
+        if(city.timezone === newCity) {
+          cityToAdd = true;
         }
-      }
+      });
+    }
+    console.log("City to add: " + cityToAdd);
+
+    if(cityFound && cityToAdd) {
+      //delete city
+      handleDeleteCity(selectedCity);
+      //add city
+      handleAddCity(newCity);
     }
 
+    fetchUserCities();
+    
   };
 
   function logout() {

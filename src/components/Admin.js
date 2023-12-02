@@ -183,12 +183,15 @@ function UserManager() {
             })
               .then((response) => {
                 if (response.ok) {
-                  setCityMessage(`Refreshed weather for ${city.timezone}`);
+                  setCityMessage(`Refreshing weather`);
                 }
               })
               .then(() => fetchCities())
               .catch((err) => console.error(err));
           });
+        setCityMessage('Refreshed Weather');
+        setCityMessage('');
+
     };
 
     return (
