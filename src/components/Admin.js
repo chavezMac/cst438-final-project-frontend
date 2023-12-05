@@ -224,7 +224,7 @@ function UserManager() {
           </div>
           <div className="Dashboard" style={{ marginLeft: '20px' }}>
             <h3 style={{color: 'white'}}>Cities</h3>
-            <div className="message">{cityMessage}</div>
+            <div id="cityMessage" className="message">{cityMessage}</div>
             <div className="cities-container">
                 <table style={{color: 'white'}}>
                     <tbody>
@@ -237,7 +237,7 @@ function UserManager() {
                 </table>
             </div>
             <div>
-                <button className="button" onClick={addNewCity}>Add New City</button>
+                <button id="addButton" className="button" onClick={addNewCity}>Add New City</button>
                 <button className="button" onClick={deleteCity}>Delete City</button>
                 <button className="button" onClick={updateWeather}>Update Weather</button>
             </div>
