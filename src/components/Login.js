@@ -76,18 +76,18 @@ function Login() {
                     <tr><td>
                     <label htmlFor="username">UserName</label>
                     </td><td>
-                    <input type="text" name="username" value={user.username} onChange={onChange} />
+                    <input type="text" id="usernameField" name="username" value={user.username} onChange={onChange} />
                     </td></tr>
                     <tr><td>
                     <label htmlFor="password">Password</label>
                     </td><td>
-                    <input type="text" name="password" value={user.password} onChange={onChange} />
+                    <input type="text" id="passwordField" name="password" value={user.password} onChange={onChange} />
                     </td></tr>
                     </tbody>
                     </table>
                 
                     <br/>
-                    <button id="submit" onClick={login}>Login</button>
+                    <button id="submitButton" onClick={login}>Login</button>
                 </div>
             </div>
         );

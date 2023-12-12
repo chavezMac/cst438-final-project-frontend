@@ -7,7 +7,6 @@ function UserManager() {
     const [cities, setCities] = useState([]);
     const [message, setMessage] = useState('');
     const [cityMessage, setCityMessage] = useState('');
-    const [newCityName, setNewCityName] = useState('');
 
     const url = SERVER_URL + '/users';
     const cityurl = SERVER_URL + '/city';
@@ -128,15 +127,14 @@ function UserManager() {
             })
             .then((response) => {
                 if (response.ok) {
-                    setNewCityName(cityName);
-                    setCityMessage(`Added city: ${newCityName}`);
-                    setNewCityName(''); // Clear the input after adding the city
+                    setCityMessage(`Added city: ${cityName}`);
+                    console.log(response);
                 }
             })
             .then((responseData) => {
                 console.log(responseData);
             }) 
-            .catch((err) => console.error(err), setNewCityName(''))
+            .catch((err) => console.error(err))
             .finally(() => {
                 fetchCities();
             })
@@ -144,7 +142,29 @@ function UserManager() {
     }
 
     function deleteCity() {
+        const cityName = prompt('Enter the name of the city to delete:');
 
+        if (cityName) {
+            fetch(`${adminurl}/delete?name=${cityName}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionStorage.getItem('jwt'),
+            },
+            })
+            .then((response) => {
+                if (response.ok) {
+                    setCityMessage(`Deleted city: ${cityName}`);
+                }
+            })
+            .then((responseData) => {
+                console.log(responseData);
+            }) 
+            .catch((err) => console.error(err))
+            .finally(() => {
+                fetchCities();
+            })
+        }
     }
 
     function logout() {
@@ -163,12 +183,15 @@ function UserManager() {
             })
               .then((response) => {
                 if (response.ok) {
-                  setCityMessage(`Refreshed weather for ${city.timezone}`);
+                  setCityMessage(`Refreshing weather`);
                 }
               })
               .then(() => fetchCities())
               .catch((err) => console.error(err));
           });
+        setCityMessage('Refreshed Weather');
+        setCityMessage('');
+
     };
 
     return (
@@ -201,31 +224,21 @@ function UserManager() {
           </div>
           <div className="Dashboard" style={{ marginLeft: '20px' }}>
             <h3 style={{color: 'white'}}>Cities</h3>
-            <div className="message">{cityMessage}</div>
-            <table style={{color: 'white'}}>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Temperature</th>
-                        <th>Max Temp</th>
-                        <th>Min Temp</th>
-                        <th>Weather</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cities.map((city) => (
-                        <tr key={city.id}>
-                            <td>{city.timezone}</td>
-                            <td>{city.temp}</td>
-                            <td>{city.max}</td>
-                            <td>{city.min}</td>
-                            <td>{city.icon}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div id="cityMessage" className="message">{cityMessage}</div>
+            <div className="cities-container">
+                <table style={{color: 'white'}}>
+                    <tbody>
+                        {cities.map((city) => (
+                            <tr key={city.id}>
+                                <td>{city.timezone}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             <div>
-                <button className="button" onClick={addNewCity}>Add New City</button>
+                <button id="addButton" className="button" onClick={addNewCity}>Add New City</button>
+                <button className="button" onClick={deleteCity}>Delete City</button>
                 <button className="button" onClick={updateWeather}>Update Weather</button>
             </div>
             <div>
